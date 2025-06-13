@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Character Sorter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e6d5b8; /* Light brown background */
+            text-align: center;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .container {
+            background-color: #f5e9d8;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #5a3921;
+        }
+        .choice-btn {
+            background-color: #8b5a2b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .choice-btn:hover {
+            background-color: #6b4423;
+        }
+        .tie-btn {
+            background-color: #5a3921;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .progress-bar {
+            height: 20px;
+            background-color: #8b5a2b;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        #results {
+            display: none;
+            margin-top: 20px;
+            text-align: left;
+        }
+        .result-item {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f0e0c9;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Character Sorter</h1>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress"></div>
+        </div>
+        <p id="progress-text">0% complete</p>
+        
+        <div id="comparison">
+            <h2>Which do you prefer?</h2>
+            <button class="choice-btn" id="choice1"></button>
+            <button class="choice-btn" id="choice2"></button>
+            <button class="choice-btn tie-btn" id="tie">Tie</button>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // List of all items to sort
+        const items = [
+            "The Horse and the Infant",
+            "Just a Man",
+            "Full Speed Ahead",
+            "Open Arms",
+            "Warrior of the Mind",
+            "Polyphemus",
+            "Survive",
+            "Remember Them",
+            "My Goodbye",
+            "Storm",
+            "Luck Runs Out",
+            "Keep Your Friends Close",
+            "Ruthlessness",
+            "Puppeteer",
+            "Wouldn't You Like",
+            "Done For",
+            "There Are Other Ways",
+            "The Underworld",
+            "No Longer You",
+            "Monster",
+            "Suffering",
+            "Different Beast",
+            "Scylla",
+            "Mutiny",
+            "Thunder Bringer",
+            "Legendary",
+            "Little Wolf",
+            "We'll Be Fine",
+            "Love in Paradise",
+            "God Games",
+            "Not Sorry for Loving You",
+            "Dangerous",
+            "Charybdis",
+            "Get in the Water",
+            "Six Hundred Strike",
+            "The Challenge",
+            "Hold Them Down",
+            "Odysseus",
+            "I Can't Help but Wonder",
+            "Would You Fall in Love with Me Again"
+        ];
+
+        // Initialize variables
+        let comparisons = [];
+        let results = {};
+        let totalComparisons = 0;
+        let completedComparisons = 0;
+
+        // Initialize results with all items at score 0
+        function initializeResults() {
+            items.forEach(item => {
+                results[item] = 0;
+            });
+        }
+
+        // Generate all possible comparisons
+        function generateComparisons() {
+            for (let i = 0; i < items.length; i++) {
+                for (let j = i + 1; j < items.length; j++) {
+                    comparisons.push([items[i], items[j]]);
+                }
+            }
+            totalComparisons = comparisons.length;
+            shuffleArray(comparisons);
+        }
+
+        // Shuffle array to randomize comparison order
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Show the next comparison
+        function showNextComparison() {
+            if (comparisons.length === 0) {
+                showResults();
+                return;
+            }
+
+            const [item1, item2] = comparisons[0];
+            document.getElementById('choice1').textContent = item1;
+            document.getElementById('choice2').textContent = item2;
+
+            // Update progress
+            const progress = Math.round(((totalComparisons - comparisons.length) / totalComparisons) * 100);
+            document.getElementById('progress').style.width = progress + '%';
+            document.getElementById('progress-text').textContent = progress + '% complete';
+        }
+
+        // Handle choice selection
+        function makeChoice(winner, loser) {
+            if (winner) results[winner]++;
+            if (loser) results[loser]--;
+            comparisons.shift();
+            completedComparisons++;
+            showNextComparison();
+        }
+
+        // Show final results
+        function showResults() {
+            document.getElementById('comparison').style.display = 'none';
+            
+            // Sort results
+            const sortedResults = Object.entries(results)
+                .sort((a, b) => b[1] - a[1]);
+            
+            // Display results
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.style.display = 'block';
+            
+            sortedResults.forEach(([item, score], index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'result-item';
+                itemDiv.textContent = `${index + 1}. ${item} (score: ${score})`;
+                resultsDiv.appendChild(itemDiv);
+            });
+        }
+
+        // Initialize the sorter
+        function init() {
+            initializeResults();
+            generateComparisons();
+            showNextComparison();
+            
+            // Set up event listeners
+            document.getElementById('choice1').addEventListener('click', () => {
+                const item1 = document.getElementById('choice1').textContent;
+                const item2 = document.getElementById('choice2').textContent;
+                makeChoice(item1, item2);
+            });
+            
+            document.getElementById('choice2').addEventListener('click', () => {
+                const item1 = document.getElementById('choice1').textContent;
+                const item2 = document.getElementById('choice2').textContent;
+                makeChoice(item2, item1);
+            });
+            
+            document.getElementById('tie').addEventListener('click', () => {
+                makeChoice(null, null);
+            });
+        }
+
+        // Start the sorter when the page loads
+        window.onload = init;
+    </script>
+</body>
+</html>
